@@ -21,15 +21,20 @@ action :add do
   version_file = "#{new_resource.target_directory}/.version"
   check_proc = Proc.new { ::File.exists?(version_file) }
 
-  cached_package_filename = "#{Chef::Config[:file_cache_path]}/#{new_resource.local_filename}"
+  cached_package_filename = nil
+  if new_resource.url =~ /^file\:\/\//
+    cached_package_filename = new_resource.url[7, new_resource.url.length]
+  else
+    cached_package_filename = "#{base_cache_name}#{::File.extname(new_resource.url)}"
 
-  remote_file cached_package_filename do
-    not_if { check_proc.call }
-    owner new_resource.owner
-    group new_resource.group
-    source new_resource.url
-    mode '0600'
-    action :create_if_missing
+    remote_file cached_package_filename do
+      not_if { check_proc.call }
+      owner new_resource.owner
+      group new_resource.group
+      source new_resource.url
+      mode '0600'
+      action :create_if_missing
+    end
   end
 
   [new_resource.base_directory, new_resource.package_directory, new_resource.target_directory].each do |dir|
