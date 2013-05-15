@@ -89,6 +89,7 @@ action :add do
   end
 
   file cached_package_filename do
+    backup false
     action :delete
   end
 
@@ -116,6 +117,7 @@ action :add do
     each do |filename|
     directory filename do
       action :delete
+      backup false
       recursive true
     end
   end
