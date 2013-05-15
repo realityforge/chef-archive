@@ -113,12 +113,16 @@ action :add do
     group new_resource.group
   end
 
-  Dir["#{new_resource.package_directory}/#{new_resource.name}-*"].
+  existing_files = Dir["#{new_resource.package_directory}/#{new_resource.name}-*"].
     select { |file| ::File.directory?(file) }.
     select { |file| file != last_version }.
     select { |file| file != new_resource.target_directory }.
-    sort { |file| ::File.mtime(file).to_i }.
-    each do |filename|
+    sort { |file| -::File.ctime(file).to_i }
+
+  versions_to_keep = 2
+  files_to_delete = existing_files[0...versions_to_keep]
+
+  files_to_delete.each do |filename|
     directory filename do
       action :delete
       recursive true
