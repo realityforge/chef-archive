@@ -117,7 +117,6 @@ action :add do
     each do |filename|
     directory filename do
       action :delete
-      backup false
       recursive true
     end
   end
