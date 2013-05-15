@@ -22,8 +22,10 @@ action :add do
   check_proc = Proc.new { ::File.exists?(version_file) }
 
   cached_package_filename = nil
+  delete_cached_package = true
   if new_resource.url =~ /^file\:\/\//
     cached_package_filename = new_resource.url[7, new_resource.url.length]
+    delete_cached_package = false
   else
     cached_package_filename = "#{base_cache_name}#{::File.extname(new_resource.url)}"
 
@@ -88,9 +90,11 @@ action :add do
     raise "Unsupported extract_action #{new_resource.extract_action}"
   end
 
-  file cached_package_filename do
-    backup false
-    action :delete
+  if delete_cached_package
+    file cached_package_filename do
+      backup false
+      action :delete
+    end
   end
 
   file version_file do
