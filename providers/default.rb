@@ -27,7 +27,7 @@ action :add do
     cached_package_filename = new_resource.url[7, new_resource.url.length]
     delete_cached_package = false
   else
-    cached_package_filename = "#{base_cache_name}#{::File.extname(new_resource.url)}"
+    cached_package_filename = "#{Chef::Config[:file_cache_path]}/#{new_resource.local_filename}"
 
     remote_file cached_package_filename do
       not_if { check_proc.call }
