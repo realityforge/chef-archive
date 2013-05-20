@@ -52,8 +52,6 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 - umask: The umask used when setting up the archive. Defaults to <code>nil</code>.
 - prefix: The directory in which the archive is unpacked. Defaults to <code>"/usr/local"</code>.
 - extract_action: The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and stript the first directory. Defaults to <code>nil</code>.
-- publish_container_dir_to: The dot separated node attribute to set to the container directory. This occurs at resource definition time. Defaults to <code>nil</code>.
-- publish_artifact_location_to: The dot separated node attribute to set to the artifact location. This occurs at resource definition time. Defaults to <code>nil</code>.
 
 ### Examples
 
@@ -76,8 +74,6 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       version '1.0'
       owner 'myapp'
       group 'myapp'
-      publish_container_dir_to 'myapp.home_dir'
-      publish_artifact_location_to 'myapp.jar_location'
     end
 
 # License and Maintainer

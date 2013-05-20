@@ -16,8 +16,9 @@
 
 =begin
 #<
-The LWRP downloads an archive and places in a local versioned directory and
-symlinks the current version.
+The LWRP retrieves an artifact of particular version from a url. The artifact is
+placed in a versioned directory and then a symlink is created from current version
+of the artifact to the retrieved version.
 
 The LWRP first creates a container directory based on the name and the prefix. Under the
 container directory, there is a directory in which all the versions of the artifact are
@@ -30,9 +31,9 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 
 @section Examples
 
-    # Download the myapp.zip archive, extract, strip the
-    # top level dir and place results into /usr/loca/myapp/pkg/1.0
-    # and symlink /usr/loca/myapp/pkg/current to /usr/loca/myapp/pkg/1.0
+    # Download the myapp.zip archive, extract the archive, strip the
+    # top level dir and place results into /usr/loca/myapp/versions/1.0
+    # and symlink /usr/loca/myapp/versions/current to /usr/loca/myapp/versions/1.0
     archive 'myapp' do
       url "http://example.com/myapp.zip"
       version '1.0'
@@ -49,8 +50,6 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       version '1.0'
       owner 'myapp'
       group 'myapp'
-      publish_container_dir_to 'myapp.home_dir'
-      publish_artifact_location_to 'myapp.jar_location'
     end
 
 #>
@@ -73,13 +72,8 @@ attribute :umask, :kind_of => String, :default => nil
 
 #<> @attribute prefix The directory in which the archive is unpacked.
 attribute :prefix, :kind_of => String, :default => '/usr/local'
-#<> @attribute extract_action The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and stript the first directory.
+#<> @attribute extract_action The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and script the first directory.
 attribute :extract_action, :equal_to => ['unzip', 'unzip_and_strip_dir', nil], :default => nil
-
-#<> @attribute publish_container_dir_to The dot separated node attribute to set to the container directory. This occurs at resource definition time.
-attribute :publish_container_dir_to, :kind_of => String, :default => nil
-#<> @attribute publish_artifact_location_to The dot separated node attribute to set to the artifact location. This occurs at resource definition time.
-attribute :publish_artifact_location_to, :kind_of => String, :default => nil
 
 default_action :add
 
@@ -94,7 +88,7 @@ def derived_version
 end
 
 def package_directory
-  "#{base_directory}/pkg"
+  "#{base_directory}/versions"
 end
 
 def target_directory
@@ -112,13 +106,3 @@ end
 def local_filename
   "#{name}-#{derived_version}#{::File.extname(url)}"
 end
-
-def after_created
-  if publish_container_dir_to
-    Chef::AttributeBlender.blend_attribute_into_node(node, publish_container_dir_to, base_directory)
-  end
-  if publish_artifact_location_to
-    Chef::AttributeBlender.blend_attribute_into_node(node, publish_artifact_location_to, target_artifact)
-  end
-end
-
