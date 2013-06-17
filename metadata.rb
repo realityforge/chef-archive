@@ -22,4 +22,4 @@ version          '0.2.3'
 
 supports 'ubuntu'
 
-depends 'cutlery', '>= 0.2.0'
+depends 'cutlery'
