@@ -62,7 +62,7 @@ attribute :name, :kind_of => String, :name_attribute => true
 #<> @attribute url The url from which to download the resource.
 attribute :url, :kind_of => String, :required => true
 #<> @attribute version The version of the archive. Should be set, otherwise will be derived as a hash of the url parameter.
-attribute :version, :kind_of => String, :default => nil
+attribute :version, :kind_of => [String, NilClass], :default => nil
 #<> @attribute owner The owner of the container directory and created artifacts.
 attribute :owner, :kind_of => String, :default => 'root'
 #<> @attribute group The group of the container directory and created artifacts.
@@ -71,14 +71,22 @@ attribute :group, :kind_of => [String, Fixnum], :default => 0
 attribute :umask, :kind_of => String, :default => nil
 
 #<> @attribute prefix The directory in which the archive is unpacked.
-attribute :prefix, :kind_of => String, :default => '/usr/local'
+attribute :prefix, :kind_of => [String, NilClass], :default => nil
 #<> @attribute extract_action The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and script the first directory.
 attribute :extract_action, :equal_to => ['unzip', 'unzip_and_strip_dir', nil], :default => nil
 
 default_action :add
 
 def base_directory
-  "#{prefix}/#{name}"
+  p = prefix
+  if p.nil?
+    if node['platform'] == 'windows'
+      p = 'C:/Applications'
+    else
+      p = '/usr/local'
+    end
+  end
+  "#{p}/#{name}"
 end
 
 def derived_version

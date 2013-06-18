@@ -31,19 +31,23 @@ action :add do
 
     remote_file cached_package_filename do
       not_if { check_proc.call }
-      owner new_resource.owner
-      group new_resource.group
       source new_resource.url
-      mode '0600'
+      unless node['platform'] == 'windows'
+        owner new_resource.owner
+        group new_resource.group
+        mode '0600'
+      end
       action :create_if_missing
     end
   end
 
   [new_resource.base_directory, new_resource.package_directory, new_resource.target_directory].each do |dir|
     directory dir do
-      owner new_resource.owner
-      group new_resource.group
-      mode '0700'
+      unless node['platform'] == 'windows'
+        owner new_resource.owner
+        group new_resource.group
+        mode '0700'
+      end
       action :create
     end
   end
@@ -79,12 +83,18 @@ action :add do
       code "unzip -q -u -o #{cached_package_filename} -d #{new_resource.target_artifact}"
     end
   elsif new_resource.extract_action.nil?
-    bash 'move_package' do
-      not_if { check_proc.call }
-      user new_resource.owner
-      group new_resource.group
-      umask new_resource.umask if new_resource.umask
-      code "cp #{cached_package_filename} #{new_resource.target_artifact}"
+    if node['platform'] == 'windows'
+      windows_batch 'move_package' do
+        code "cp #{cached_package_filename} #{new_resource.target_artifact}"
+      end
+    else
+      bash 'move_package' do
+        not_if { check_proc.call }
+        user new_resource.owner
+        group new_resource.group
+        umask new_resource.umask if new_resource.umask
+        code "cp #{cached_package_filename} #{new_resource.target_artifact}"
+      end
     end
   else
     raise "Unsupported extract_action #{new_resource.extract_action}"
@@ -98,9 +108,11 @@ action :add do
   end
 
   file version_file do
-    owner new_resource.owner
-    group new_resource.group
-    mode '0600'
+    unless node['platform'] == 'windows'
+      owner new_resource.owner
+      group new_resource.group
+      mode '0600'
+    end
     content new_resource.derived_version
     action :create
   end
@@ -109,8 +121,10 @@ action :add do
 
   link current_directory do
     to new_resource.target_directory
-    owner new_resource.owner
-    group new_resource.group
+    unless node['platform'] == 'windows'
+      owner new_resource.owner
+      group new_resource.group
+    end
   end
 
   existing_files = Dir["#{new_resource.package_directory}/#{new_resource.name}-*"].
