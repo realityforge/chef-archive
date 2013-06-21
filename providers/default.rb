@@ -118,7 +118,7 @@ action :add do
     action :create
   end
 
-  last_version = ::File.exist?(current_directory) ? ::File.readlink(current_directory) : nil
+  last_version = (::File.exist?(current_directory) && node['platform'] != 'windows') ? ::File.readlink(current_directory) : nil
 
   link current_directory do
     to new_resource.target_directory
