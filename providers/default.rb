@@ -48,6 +48,7 @@ action :add do
         group new_resource.group
         mode '0700'
       end
+      recursive (new_resource.base_directory == dir)
       action :create
     end
   end
