@@ -1,3 +1,5 @@
+## v0.2.6:
+
 ## v0.2.4:
 
 * Initial windows support. Does not yet handle rights controls, nor does it support specifying an
