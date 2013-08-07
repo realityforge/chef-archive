@@ -137,12 +137,12 @@ action :add do
     sort { |file| -::File.ctime(file).to_i }
 
   versions_to_keep = 2
-  files_to_delete = existing_files[0...versions_to_keep]
+  files_to_delete = existing_files[versions_to_keep...existing_files.length]
 
   files_to_delete.each do |filename|
     directory filename do
       action :delete
       recursive true
     end
-  end
+  end if files_to_delete
 end
