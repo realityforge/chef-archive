@@ -136,7 +136,7 @@ action :add do
     select { |file| file != new_resource.target_directory }.
     sort { |file| -::File.ctime(file).to_i }
 
-  versions_to_keep = 2
+  versions_to_keep = 4
   files_to_delete = existing_files[versions_to_keep...existing_files.length]
 
   files_to_delete.each do |filename|
