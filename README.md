@@ -2,17 +2,18 @@
 
 [![Build Status](https://secure.travis-ci.org/realityforge/chef-archive.png?branch=master)](http://travis-ci.org/realityforge/chef-archive)
 
-Provides a utility LWRP to download and unpack archives.
+Provides a utility LWRP to retrieve versioned archives and unpack them in a local versioned directory.
 
 # Requirements
 
 ## Platform:
 
 * Ubuntu
+* Windows
 
 ## Cookbooks:
 
-* cutlery (>= 0.2.0)
+* cutlery
 
 # Attributes
 
@@ -24,12 +25,13 @@ Provides a utility LWRP to download and unpack archives.
 
 # Resources
 
-* [archive](#archive) - The LWRP downloads an archive and places in a local versioned directory and symlinks the current version.
+* [archive](#archive) - The LWRP retrieves an artifact of particular version from a url.
 
 ## archive
 
-The LWRP downloads an archive and places in a local versioned directory and
-symlinks the current version.
+The LWRP retrieves an artifact of particular version from a url. The artifact is
+placed in a versioned directory and then a symlink is created from current version
+of the artifact to the retrieved version.
 
 The LWRP first creates a container directory based on the name and the prefix. Under the
 container directory, there is a directory in which all the versions of the artifact are
@@ -50,14 +52,14 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 - owner: The owner of the container directory and created artifacts. Defaults to <code>"root"</code>.
 - group: The group of the container directory and created artifacts. Defaults to <code>0</code>.
 - umask: The umask used when setting up the archive. Defaults to <code>nil</code>.
-- prefix: The directory in which the archive is unpacked. Defaults to <code>"/usr/local"</code>.
-- extract_action: The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and stript the first directory. Defaults to <code>nil</code>.
+- prefix: The directory in which the archive is unpacked. Defaults to <code>nil</code>.
+- extract_action: The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and script the first directory. Defaults to <code>nil</code>.
 
 ### Examples
 
-    # Download the myapp.zip archive, extract, strip the
-    # top level dir and place results into /usr/loca/myapp/pkg/1.0
-    # and symlink /usr/loca/myapp/pkg/current to /usr/loca/myapp/pkg/1.0
+    # Download the myapp.zip archive, extract the archive, strip the
+    # top level dir and place results into /usr/loca/myapp/versions/1.0
+    # and symlink /usr/loca/myapp/versions/current to /usr/loca/myapp/versions/1.0
     archive 'myapp' do
       url "http://example.com/myapp.zip"
       version '1.0'
