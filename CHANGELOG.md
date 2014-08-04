@@ -1,5 +1,9 @@
 ## v0.2.6:
 
+* Keep the latest 4 versions of file.
+* Delete the oldest versions rather than the earliest.
+* Avoid linking on windows at all until the link resource can correctly handle changes of the target.
+
 ## v0.2.4:
 
 * Initial windows support. Does not yet handle rights controls, nor does it support specifying an
