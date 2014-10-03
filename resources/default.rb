@@ -72,7 +72,7 @@ attribute :umask, :kind_of => String, :default => nil
 
 #<> @attribute prefix The directory in which the archive is unpacked.
 attribute :prefix, :kind_of => [String, NilClass], :default => nil
-#<> @attribute extract_action The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and script the first directory.
+#<> @attribute extract_action The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and strip the first directory.
 attribute :extract_action, :equal_to => ['unzip', 'unzip_and_strip_dir', nil], :default => nil
 
 default_action :add
