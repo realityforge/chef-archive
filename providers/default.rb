@@ -121,6 +121,7 @@ action :add do
 
   last_version = nil
 
+  # TODO: linking should be configurable
   unless node['platform'] == 'windows'
     last_version = ::File.exist?(current_directory) ? ::File.readlink(current_directory) : nil
     link current_directory do
