@@ -51,6 +51,7 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 - version: The version of the archive. Should be set, otherwise will be derived as a hash of the url parameter. Defaults to <code>nil</code>.
 - owner: The owner of the container directory and created artifacts. Defaults to <code>"root"</code>.
 - group: The group of the container directory and created artifacts. Defaults to <code>0</code>.
+- mode: The permissions on the container directory and created artifacts. Defaults to <code>0700</code>.
 - umask: The umask used when setting up the archive. Defaults to <code>nil</code>.
 - prefix: The directory in which the archive is unpacked. Defaults to <code>nil</code>.
 - extract_action: The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and script the first directory. Defaults to <code>nil</code>.
@@ -59,7 +60,7 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 
     # Download the myapp.zip archive, extract the archive, strip the
     # top level dir and place results into /usr/loca/myapp/versions/1.0
-    # and symlink /usr/loca/myapp/versions/current to /usr/loca/myapp/versions/1.0
+    # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
     archive 'myapp' do
       url "http://example.com/myapp.zip"
       version '1.0'
@@ -68,9 +69,22 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       extract_action 'unzip_and_strip_dir'
     end
 
+    # Download the myapp.zip archive, extract the archive, strip the
+    # top level dir and place results into /usr/loca/myapp/versions/1.0
+    # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
+    # and set the permissions of /usr/local/myapp to 0755
+    archive 'myapp' do
+      url "http://example.com/myapp.zip"
+      version '1.0'
+      owner 'myapp'
+      group 'myapp'
+      mode '0755'
+      extract_action 'unzip_and_strip_dir'
+    end
+
     # Download the myapp.jar and place set the attribute
     # myapp.home_dir to the container dir (i.e. /usr/local/myapp) and
-    # myapp.jar_location to the downloaded jar. (i.e. /usr/loca/myapp/pkg/current/myapp-1.0.jar)
+    # myapp.jar_location to the downloaded jar. (i.e. /usr/local/myapp/pkg/current/myapp-1.0.jar)
     archive 'myapp' do
       url "http://example.com/myapp.jar"
       version '1.0'
