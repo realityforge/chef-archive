@@ -32,8 +32,8 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 @section Examples
 
     # Download the myapp.zip archive, extract the archive, strip the
-    # top level dir and place results into /usr/loca/myapp/versions/1.0
-    # and symlink /usr/loca/myapp/versions/current to /usr/loca/myapp/versions/1.0
+    # top level dir and place results into /usr/local/myapp/versions/1.0
+    # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
     archive 'myapp' do
       url "http://example.com/myapp.zip"
       version '1.0'
@@ -42,9 +42,22 @@ By default the LWRP will retain the directory for the last artifact downloaded.
       extract_action 'unzip_and_strip_dir'
     end
 
+    # Download the myapp.zip archive, extract the archive, strip the
+    # top level dir and place results into /usr/loca/myapp/versions/1.0
+    # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
+    # and set the permissions of /usr/local/myapp to 0755
+    archive 'myapp' do
+      url "http://example.com/myapp.zip"
+      version '1.0'
+      owner 'myapp'
+      group 'myapp'
+      mode '0755'
+      extract_action 'unzip_and_strip_dir'
+    end
+
     # Download the myapp.jar and place set the attribute
     # myapp.home_dir to the container dir (i.e. /usr/local/myapp) and
-    # myapp.jar_location to the downloaded jar. (i.e. /usr/loca/myapp/pkg/current/myapp-1.0.jar)
+    # myapp.jar_location to the downloaded jar. (i.e. /usr/local/myapp/pkg/current/myapp-1.0.jar)
     archive 'myapp' do
       url "http://example.com/myapp.jar"
       version '1.0'
@@ -67,7 +80,7 @@ attribute :version, :kind_of => [String, NilClass], :default => nil
 attribute :owner, :kind_of => String, :default => 'root'
 #<> @attribute group The group of the container directory and created artifacts.
 attribute :group, :kind_of => [String, Fixnum], :default => 0
-#<> @attribute mode The permissions on the base_directory
+#<> @attribute mode The permissions on the container directory and created artifacts.
 attribute :mode, :kind_of => String, :default => '0700'
 #<> @attribute umask The umask used when setting up the archive.
 attribute :umask, :kind_of => String, :default => nil
