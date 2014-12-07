@@ -67,6 +67,8 @@ attribute :version, :kind_of => [String, NilClass], :default => nil
 attribute :owner, :kind_of => String, :default => 'root'
 #<> @attribute group The group of the container directory and created artifacts.
 attribute :group, :kind_of => [String, Fixnum], :default => 0
+#<> @attribute mode The permissions on the base_directory
+attribute :mode, :kind_of => String, :default => '0700'
 #<> @attribute umask The umask used when setting up the archive.
 attribute :umask, :kind_of => String, :default => nil
 

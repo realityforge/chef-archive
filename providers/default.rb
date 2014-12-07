@@ -49,7 +49,7 @@ action :add do
         unless node['platform'] == 'windows'
           owner new_resource.owner
           group new_resource.group
-          mode '0700'
+          mode new_resource.mode
         end
         recursive (new_resource.base_directory == dir)
         action :create
