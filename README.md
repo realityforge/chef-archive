@@ -51,15 +51,15 @@ By default the LWRP will retain the directory for the last artifact downloaded.
 - version: The version of the archive. Should be set, otherwise will be derived as a hash of the url parameter. Defaults to <code>nil</code>.
 - owner: The owner of the container directory and created artifacts. Defaults to <code>"root"</code>.
 - group: The group of the container directory and created artifacts. Defaults to <code>0</code>.
-- mode: The permissions on the container directory and created artifacts. Defaults to <code>0700</code>.
+- mode: The permissions on the container directory and created artifacts. Defaults to <code>"0700"</code>.
 - umask: The umask used when setting up the archive. Defaults to <code>nil</code>.
 - prefix: The directory in which the archive is unpacked. Defaults to <code>nil</code>.
-- extract_action: The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and script the first directory. Defaults to <code>nil</code>.
+- extract_action: The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and strip the first directory. Defaults to <code>nil</code>.
 
 ### Examples
 
     # Download the myapp.zip archive, extract the archive, strip the
-    # top level dir and place results into /usr/loca/myapp/versions/1.0
+    # top level dir and place results into /usr/local/myapp/versions/1.0
     # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
     archive 'myapp' do
       url "http://example.com/myapp.zip"
