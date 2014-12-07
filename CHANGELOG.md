@@ -1,5 +1,10 @@
 ## v0.2.8:
 
+* Makes the permissions on the container directory configurable by adding a mode attribute in the
+  LWRP. This will apply to the top level container directory, e.g. /usr/local/myapp and the version
+  subdirectories /usr/local/myapp/versions and /usr/local/myapp/versions/x.x.x.
+  Submitted by Daniel van den Berg.
+
 ## v0.2.6:
 
 * Keep the latest 4 versions of file.
