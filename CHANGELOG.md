@@ -1,3 +1,5 @@
+## v0.2.10:
+
 ## v0.2.8:
 
 * Makes the permissions on the container directory configurable by adding a mode attribute in the
