@@ -69,6 +69,7 @@ action :add do
         umask new_resource.umask if new_resource.umask
         code <<-CMD
           set -e
+          rm -rf #{temp_dir}
           mkdir #{temp_dir}
           unzip -q -u -o #{cached_package_filename} -d #{temp_dir}
           if [ `ls -1 #{temp_dir} |wc -l` -gt 1 ] ; then
