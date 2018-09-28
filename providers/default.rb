@@ -103,7 +103,7 @@ action :add do
       end
     elsif new_resource.extract_action.nil?
       if node['platform'] == 'windows'
-        windows_batch 'move_package' do
+        batch 'move_package' do
           not_if { archive_exists }
           code "cp #{cached_package_filename} #{new_resource.target_artifact}"
         end
