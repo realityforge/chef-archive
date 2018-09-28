@@ -105,7 +105,7 @@ action :add do
       if node['platform'] == 'windows'
         batch 'move_package' do
           not_if { archive_exists }
-          code "cp #{cached_package_filename} #{new_resource.target_artifact}"
+          code "copy #{cached_package_filename} #{new_resource.target_artifact}"
         end
       else
         bash 'move_package' do
