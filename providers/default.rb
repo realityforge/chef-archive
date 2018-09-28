@@ -103,7 +103,7 @@ action :add do
       end
     elsif new_resource.extract_action.nil?
       if node['platform'] == 'windows'
-        batch 'move_package' do
+        powershell_script 'move_package' do
           not_if { archive_exists }
           code "copy \"#{cached_package_filename}\" \"#{new_resource.target_artifact}\""
         end
