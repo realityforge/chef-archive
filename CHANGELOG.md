@@ -1,5 +1,6 @@
 ## v0.4.0:
 * Add Windows support for unzip_and_strip_dir extract action
+* Change unzip package dependency to ruby native implementation
 * Fix some style issues
 
 ## v0.2.10:

@@ -59,14 +59,18 @@ action :add do
       temp_dir = ::File.join(Chef::Config[:file_cache_path], "install-#{new_resource.name}-#{new_resource.derived_version}")
 
       if node['os'] == 'linux'
-        package 'unzip'
+        zipfile cached_package_filename do
+          into temp_dir
+          not_if { archive_exists }
+          overwrite true
+          user new_resource.owner
+          group new_resource.group
+          umask new_resource.umask if new_resource.umask
+        end
 
-        bash 'unzip_package' do
+        bash 'move_files' do
           code <<-CMD
             set -e
-            rm -rf #{temp_dir}
-            mkdir #{temp_dir}
-            unzip -q -u -o #{cached_package_filename} -d #{temp_dir}
             if [ `ls -1 #{temp_dir} |wc -l` -gt 1 ] ; then
               echo More than one directory found
               exit 37
@@ -80,9 +84,6 @@ action :add do
           into temp_dir
           not_if { archive_exists }
           overwrite true
-          user new_resource.owner
-          group new_resource.group
-          umask new_resource.umask if new_resource.umask
         end
         powershell_script 'move_files' do
           not_if { archive_exists }
@@ -97,9 +98,11 @@ action :add do
       zipfile cached_package_filename do
         into new_resource.target_artifact
         not_if { archive_exists }
-        user new_resource.owner
-        group new_resource.group
-        umask new_resource.umask if new_resource.umask
+        unless node['platform'] == 'windows'
+          user new_resource.owner
+          group new_resource.group
+          umask new_resource.umask if new_resource.umask
+        end
       end
     elsif new_resource.extract_action.nil?
       if node['platform'] == 'windows'
