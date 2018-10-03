@@ -9,11 +9,13 @@ Provides a utility LWRP to retrieve versioned archives and unpack them in a loca
 ## Platform:
 
 * Ubuntu
+* Debian
 * Windows
 
 ## Cookbooks:
 
 * cutlery
+* zipfile
 
 # Attributes
 
