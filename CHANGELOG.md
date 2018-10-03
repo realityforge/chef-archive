@@ -1,3 +1,7 @@
+## v0.4.0:
+* Add Windows support for unzip_and_strip_dir extract action
+* Fix some style issues
+
 ## v0.2.10:
 
 ## v0.2.8:

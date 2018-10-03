@@ -12,15 +12,20 @@
 # limitations under the License.
 #
 
-name             'archive'
-maintainer       'Peter Donald'
+name 'archive'
+maintainer 'Peter Donald'
 maintainer_email 'peter@realityforge.org'
-license          'Apache 2.0'
-description      'Provides utility LWRPs to download and unpack archives.'
+license 'Apache-2.0'
+description 'Provides utility LWRPs to download and unpack archives.'
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          '0.2.9'
+version '0.4.0'
+issues_url 'https://github.com/realityforge/chef-archive/issues'
+source_url 'https://github.com/realityforge/chef-archive'
+chef_version '>= 13.0' if respond_to?(:chef_version)
 
 supports 'ubuntu'
+supports 'debian'
 supports 'windows'
 
 depends 'cutlery'
+depends 'zipfile'

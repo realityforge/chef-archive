@@ -14,11 +14,9 @@
 # limitations under the License.
 #
 
-use_inline_resources
-
 action :add do
-  current_directory = "#{new_resource.package_directory}/current"
-  archive_exists = ::File.exists?(new_resource.target_artifact)
+  current_directory = ::File.join(new_resource.package_directory, 'current')
+  archive_exists = ::File.exist?(new_resource.target_artifact)
 
   Chef::Log.info "Archive #{new_resource.name} => #{new_resource.target_artifact} Exists? #{archive_exists}"
 
@@ -26,11 +24,11 @@ action :add do
 
     cached_package_filename = nil
     delete_cached_package = true
-    if new_resource.url =~ /^file\:\/\//
+    if new_resource.url =~ %r{/^file\:\/\//}
       cached_package_filename = new_resource.url[7, new_resource.url.length]
       delete_cached_package = false
     else
-      cached_package_filename = "#{Chef::Config[:file_cache_path]}/#{new_resource.local_filename}"
+      cached_package_filename = ::File.join(Chef::Config[:file_cache_path], new_resource.local_filename)
 
       remote_file cached_package_filename do
         not_if { archive_exists }
@@ -45,55 +43,69 @@ action :add do
     end
 
     [new_resource.base_directory, new_resource.package_directory, new_resource.target_directory].each do |dir|
-      directory dir do
+      directory dir do # ~FC021
         unless node['platform'] == 'windows'
           owner new_resource.owner
           group new_resource.group
           mode new_resource.mode
         end
-        recursive (new_resource.base_directory == dir)
+        recursive new_resource.base_directory == dir
         action :create
-        not_if { ::File.exists?(new_resource.base_directory) && dir == new_resource.base_directory }
+        not_if { ::File.exist?(new_resource.base_directory) && dir == new_resource.base_directory }
       end
     end
 
-    if 'unzip_and_strip_dir' == new_resource.extract_action
-      temp_dir = "/tmp/install-#{new_resource.name}-#{new_resource.derived_version}"
+    if new_resource.extract_action == 'unzip_and_strip_dir'
+      temp_dir = ::File.join(Chef::Config[:file_cache_path], "install-#{new_resource.name}-#{new_resource.derived_version}")
 
-      package 'unzip'
+      if node['os'] == 'linux'
+        package 'unzip'
 
-      bash 'unzip_package' do
-        not_if { archive_exists }
-        user new_resource.owner
-        group new_resource.group
-        umask new_resource.umask if new_resource.umask
-        code <<-CMD
-          set -e
-          rm -rf #{temp_dir}
-          mkdir #{temp_dir}
-          unzip -q -u -o #{cached_package_filename} -d #{temp_dir}
-          if [ `ls -1 #{temp_dir} |wc -l` -gt 1 ] ; then
-            echo More than one directory found
-            exit 37
-          fi
-          mv #{temp_dir}/*/* #{new_resource.target_artifact} && rm -rf #{temp_dir} && test -d #{new_resource.target_artifact}
-        CMD
+        bash 'unzip_package' do
+          code <<-CMD
+            set -e
+            rm -rf #{temp_dir}
+            mkdir #{temp_dir}
+            unzip -q -u -o #{cached_package_filename} -d #{temp_dir}
+            if [ `ls -1 #{temp_dir} |wc -l` -gt 1 ] ; then
+              echo More than one directory found
+              exit 37
+            fi
+            mv #{temp_dir}/*/* #{new_resource.target_artifact} && rm -rf #{temp_dir} && test -d #{new_resource.target_artifact}
+          CMD
+          not_if { archive_exists }
+        end
+      elsif node['os'] == 'windows'
+        zipfile cached_package_filename do
+          into temp_dir
+          not_if { archive_exists }
+          overwrite true
+          user new_resource.owner
+          group new_resource.group
+          umask new_resource.umask if new_resource.umask
+        end
+        powershell_script 'move_files' do
+          not_if { archive_exists }
+          code <<-EOH
+          move-item #{temp_dir}/*/* #{new_resource.target_artifact}
+          remove-item -Recurse #{temp_dir}
+          Test-Path -ErrorAction Stop #{new_resource.target_artifact}
+          EOH
+        end
       end
-    elsif 'unzip' == new_resource.extract_action
-      package 'unzip'
-
-      bash 'unzip_package' do
+    elsif new_resource.extract_action == 'unzip'
+      zipfile cached_package_filename do
+        into new_resource.target_artifact
         not_if { archive_exists }
         user new_resource.owner
         group new_resource.group
         umask new_resource.umask if new_resource.umask
-        code "unzip -q -u -o #{cached_package_filename} -d #{new_resource.target_artifact}"
       end
     elsif new_resource.extract_action.nil?
       if node['platform'] == 'windows'
-        windows_batch 'move_package' do
+        powershell_script 'move_package' do
           not_if { archive_exists }
-          code "cp #{cached_package_filename} #{new_resource.target_artifact}"
+          code "copy \"#{cached_package_filename}\" \"#{new_resource.target_artifact}\""
         end
       else
         bash 'move_package' do
@@ -128,11 +140,11 @@ action :add do
     end
   end
 
-  existing_files = Dir["#{new_resource.package_directory}/#{new_resource.name}-*"].
-    select { |file| ::File.directory?(file) }.
-    select { |file| file != last_version }.
-    select { |file| file != new_resource.target_directory }.
-    sort { |file| -::File.ctime(file).to_i }
+  existing_files = Dir[::File.join(new_resource.package_directory, "#{new_resource.name}-*")]
+                   .select { |file| ::File.directory?(file) }
+                   .select { |file| file != last_version }
+                   .select { |file| file != new_resource.target_directory }
+                   .sort { |file| -::File.ctime(file).to_i }
 
   versions_to_keep = 4
   files_to_delete = existing_files[versions_to_keep...existing_files.length]
