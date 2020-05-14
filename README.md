@@ -1,6 +1,6 @@
 # Description
 
-[![Build Status](https://api.travis-ci.com/realityforge/chef-archive.svg?branch=master)](http://travis-ci.org/realityforge/chef-archive)
+[![Build Status](https://api.travis-ci.com/realityforge/chef-archive.svg?branch=master)](http://travis-ci.com/realityforge/chef-archive)
 
 Provides a utility LWRP to retrieve versioned archives and unpack them in a local versioned directory.
 
