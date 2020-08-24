@@ -1,5 +1,5 @@
 #
-# Copyright 2011, Peter Donald
+# Copyright:: 2011, Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -68,8 +68,6 @@
 
 actions :add
 
-# <> @attribute name The logical name of the artifact. Used when creating the container directory.
-attribute :name, kind_of: String, name_attribute: true
 # <> @attribute url The url from which to download the resource.
 attribute :url, kind_of: String, required: true
 # <> @attribute version The version of the archive. Should be set, otherwise will be derived as a hash of the url parameter.
@@ -81,7 +79,7 @@ attribute :group, kind_of: [String, Integer], default: 0
 # <> @attribute mode The permissions on the container directory and created artifacts.
 attribute :mode, kind_of: String, default: '0700'
 # <> @attribute umask The umask used when setting up the archive.
-attribute :umask, kind_of: String, default: nil
+attribute :umask, kind_of: [String, NilClass], default: nil
 
 # <> @attribute prefix The directory in which the archive is unpacked.
 attribute :prefix, kind_of: [String, NilClass], default: nil
@@ -93,7 +91,7 @@ default_action :add
 def base_directory
   p = prefix
   if p.nil?
-    p = if node['platform'] == 'windows'
+    p = if platform?('windows')
           'C:/Applications'
         else
           p = '/usr/local'

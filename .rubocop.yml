@@ -1,0 +1,11 @@
+AllCops:
+  TargetRubyVersion: 2.7
+
+Layout/EndOfLine:
+  EnforcedStyle: lf
+Layout/LineLength:
+  Max: 150
+
+# Remove when Chef 14 is no longer supported
+ChefModernize/ZipfileResource:
+  Enabled: false

@@ -17,15 +17,14 @@ maintainer 'Peter Donald'
 maintainer_email 'peter@realityforge.org'
 license 'Apache-2.0'
 description 'Provides utility LWRPs to download and unpack archives.'
-long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version '0.4.1'
+version '1.0.0'
 issues_url 'https://github.com/realityforge/chef-archive/issues'
 source_url 'https://github.com/realityforge/chef-archive'
-chef_version '>= 13.0' if respond_to?(:chef_version)
+chef_version '>= 14.0'
 
 supports 'ubuntu'
 supports 'debian'
 supports 'windows'
 
 depends 'cutlery'
-depends 'zipfile'
+depends 'zipfile' # Replace zipfile with archive_file resource when dropping support for Chef 14.
