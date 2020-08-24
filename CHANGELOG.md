@@ -1,3 +1,6 @@
+## v1.0.1:
+* Change to new style resource
+
 ## v1.0.0:
 * Fix umask nil attribute
 * Drop support for Chef version 13 and below.
