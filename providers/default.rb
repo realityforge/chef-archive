@@ -1,5 +1,5 @@
 #
-# Copyright 2011, Peter Donald
+# Copyright:: 2011, Peter Donald
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ action :add do
       remote_file cached_package_filename do
         not_if { archive_exists }
         source new_resource.url
-        unless node['platform'] == 'windows'
+        unless platform?('windows')
           owner new_resource.owner
           group new_resource.group
           mode '0600'
@@ -43,8 +43,8 @@ action :add do
     end
 
     [new_resource.base_directory, new_resource.package_directory, new_resource.target_directory].each do |dir|
-      directory dir do # ~FC021
-        unless node['platform'] == 'windows'
+      directory dir do
+        unless platform?('windows')
           owner new_resource.owner
           group new_resource.group
           mode new_resource.mode
@@ -65,7 +65,7 @@ action :add do
           overwrite true
           user new_resource.owner
           group new_resource.group
-          umask new_resource.umask if new_resource.umask
+          umask new_resource.umask if new_resource.umask # rubocop:disable Metrics/BlockNesting
         end
 
         bash 'move_files' do
@@ -79,7 +79,7 @@ action :add do
           CMD
           not_if { archive_exists }
         end
-      elsif node['os'] == 'windows'
+      elsif platform_family?('windows')
         zipfile cached_package_filename do
           into temp_dir
           not_if { archive_exists }
@@ -98,14 +98,14 @@ action :add do
       zipfile cached_package_filename do
         into new_resource.target_artifact
         not_if { archive_exists }
-        unless node['platform'] == 'windows'
+        unless platform?('windows')
           user new_resource.owner
           group new_resource.group
-          umask new_resource.umask if new_resource.umask
+          umask new_resource.umask if new_resource.umask # rubocop:disable Metrics/BlockNesting
         end
       end
     elsif new_resource.extract_action.nil?
-      if node['platform'] == 'windows'
+      if platform?('windows')
         powershell_script 'move_package' do
           not_if { archive_exists }
           code "copy \"#{cached_package_filename}\" \"#{new_resource.target_artifact}\""
@@ -115,7 +115,7 @@ action :add do
           not_if { archive_exists }
           user new_resource.owner
           group new_resource.group
-          umask new_resource.umask if new_resource.umask
+          umask new_resource.umask if new_resource.umask # rubocop:disable Metrics/BlockNesting
           code "cp #{cached_package_filename} #{new_resource.target_artifact}"
         end
       end
@@ -134,7 +134,7 @@ action :add do
   last_version = nil
 
   # TODO: linking should be configurable
-  unless node['platform'] == 'windows'
+  unless platform?('windows')
     last_version = ::File.exist?(current_directory) ? ::File.readlink(current_directory) : nil
     link current_directory do
       to new_resource.target_directory

@@ -1,3 +1,8 @@
+## v1.0.0:
+* Fix umask nil attribute
+* Drop support for Chef version 13 and below.
+* Style fixes
+
 ## v0.4.1:
 * Change unzip package dependency to ruby native implementation
   Submitted by Tero Pihlaja
