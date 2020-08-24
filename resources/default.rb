@@ -14,17 +14,15 @@
 # limitations under the License.
 #
 
-actions :add
-
 property :url, String, required: true
-property :version, [String, NilClass], default: nil
+property :version, [String, NilClass]
 property :owner, String, default: 'root'
 property :group, [String, Integer], default: 0
 property :mode, String, default: '0700'
-property :umask, [String, NilClass], default: nil
+property :umask, [String, NilClass]
 
-property :prefix, [String, NilClass], default: nil
-property :extract_action, equal_to: ['unzip', 'unzip_and_strip_dir', nil], default: nil
+property :prefix, [String, NilClass]
+property :extract_action, equal_to: ['unzip', 'unzip_and_strip_dir', nil]
 
 action :add do
   current_directory = ::File.join(new_resource.package_directory, 'current')
