@@ -14,79 +14,163 @@
 # limitations under the License.
 #
 
-# #<
-# The LWRP retrieves an artifact of particular version from a url. The artifact is
-# placed in a versioned directory and then a symlink is created from current version
-# of the artifact to the retrieved version.
-
-# The LWRP first creates a container directory based on the name and the prefix. Under the
-# container directory, there is a directory in which all the versions of the artifact are
-# stored. The LWRP will download the artifact and place it in this directory and then symlink
-# the "current" directory to the downloaded artifact.
-
-# By default the LWRP will retain the directory for the last artifact downloaded.
-
-# @action add Download and extract archive.
-
-# @section Examples
-
-#     # Download the myapp.zip archive, extract the archive, strip the
-#     # top level dir and place results into /usr/local/myapp/versions/1.0
-#     # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
-#     archive 'myapp' do
-#       url "http://example.com/myapp.zip"
-#       version '1.0'
-#       owner 'myapp'
-#       group 'myapp'
-#       extract_action 'unzip_and_strip_dir'
-#     end
-
-#     # Download the myapp.zip archive, extract the archive, strip the
-#     # top level dir and place results into /usr/loca/myapp/versions/1.0
-#     # and symlink /usr/local/myapp/versions/current to /usr/local/myapp/versions/1.0
-#     # and set the permissions of /usr/local/myapp to 0755
-#     archive 'myapp' do
-#       url "http://example.com/myapp.zip"
-#       version '1.0'
-#       owner 'myapp'
-#       group 'myapp'
-#       mode '0755'
-#       extract_action 'unzip_and_strip_dir'
-#     end
-
-#     # Download the myapp.jar and place set the attribute
-#     # myapp.home_dir to the container dir (i.e. /usr/local/myapp) and
-#     # myapp.jar_location to the downloaded jar. (i.e. /usr/local/myapp/pkg/current/myapp-1.0.jar)
-#     archive 'myapp' do
-#       url "http://example.com/myapp.jar"
-#       version '1.0'
-#       owner 'myapp'
-#       group 'myapp'
-#     end
-#
-# #>
-
 actions :add
 
-# <> @attribute url The url from which to download the resource.
-attribute :url, kind_of: String, required: true
-# <> @attribute version The version of the archive. Should be set, otherwise will be derived as a hash of the url parameter.
-attribute :version, kind_of: [String, NilClass], default: nil
-# <> @attribute owner The owner of the container directory and created artifacts.
-attribute :owner, kind_of: String, default: 'root'
-# <> @attribute group The group of the container directory and created artifacts.
-attribute :group, kind_of: [String, Integer], default: 0
-# <> @attribute mode The permissions on the container directory and created artifacts.
-attribute :mode, kind_of: String, default: '0700'
-# <> @attribute umask The umask used when setting up the archive.
-attribute :umask, kind_of: [String, NilClass], default: nil
+property :url, String, required: true
+property :version, [String, NilClass], default: nil
+property :owner, String, default: 'root'
+property :group, [String, Integer], default: 0
+property :mode, String, default: '0700'
+property :umask, [String, NilClass], default: nil
 
-# <> @attribute prefix The directory in which the archive is unpacked.
-attribute :prefix, kind_of: [String, NilClass], default: nil
-# <> @attribute extract_action The action to take with the downloaded archive. Defaults to leaving the archive un-extracted but can also unzip or unzip and strip the first directory.
-attribute :extract_action, equal_to: ['unzip', 'unzip_and_strip_dir', nil], default: nil
+property :prefix, [String, NilClass], default: nil
+property :extract_action, equal_to: ['unzip', 'unzip_and_strip_dir', nil], default: nil
 
-default_action :add
+action :add do
+  current_directory = ::File.join(new_resource.package_directory, 'current')
+  archive_exists = ::File.exist?(new_resource.target_artifact)
+
+  Chef::Log.info "Archive #{new_resource.name} => #{new_resource.target_artifact} Exists? #{archive_exists}"
+
+  unless archive_exists
+
+    cached_package_filename = nil
+    delete_cached_package = true
+    if new_resource.url =~ %r{/^file\:\/\//}
+      cached_package_filename = new_resource.url[7, new_resource.url.length]
+      delete_cached_package = false
+    else
+      cached_package_filename = ::File.join(Chef::Config[:file_cache_path], new_resource.local_filename)
+
+      remote_file cached_package_filename do
+        not_if { archive_exists }
+        source new_resource.url
+        unless platform?('windows')
+          owner new_resource.owner
+          group new_resource.group
+          mode '0600'
+        end
+        action :create_if_missing
+      end
+    end
+
+    [new_resource.base_directory, new_resource.package_directory, new_resource.target_directory].each do |dir|
+      directory dir do
+        unless platform?('windows')
+          owner new_resource.owner
+          group new_resource.group
+          mode new_resource.mode
+        end
+        recursive new_resource.base_directory == dir
+        action :create
+        not_if { ::File.exist?(new_resource.base_directory) && dir == new_resource.base_directory }
+      end
+    end
+
+    if new_resource.extract_action == 'unzip_and_strip_dir'
+      temp_dir = ::File.join(Chef::Config[:file_cache_path], "install-#{new_resource.name}-#{new_resource.derived_version}")
+
+      if node['os'] == 'linux'
+        zipfile cached_package_filename do
+          into temp_dir
+          not_if { archive_exists }
+          overwrite true
+          user new_resource.owner
+          group new_resource.group
+          umask new_resource.umask if new_resource.umask # rubocop:disable Metrics/BlockNesting
+        end
+
+        bash 'move_files' do
+          code <<-CMD
+            set -e
+            if [ `ls -1 #{temp_dir} |wc -l` -gt 1 ] ; then
+              echo More than one directory found
+              exit 37
+            fi
+            mv #{temp_dir}/*/* #{new_resource.target_artifact} && rm -rf #{temp_dir} && test -d #{new_resource.target_artifact}
+          CMD
+          not_if { archive_exists }
+        end
+      elsif platform_family?('windows')
+        zipfile cached_package_filename do
+          into temp_dir
+          not_if { archive_exists }
+          overwrite true
+        end
+        powershell_script 'move_files' do
+          not_if { archive_exists }
+          code <<-EOH
+          move-item #{temp_dir}/*/* #{new_resource.target_artifact}
+          remove-item -Recurse #{temp_dir}
+          Test-Path -ErrorAction Stop #{new_resource.target_artifact}
+          EOH
+        end
+      end
+    elsif new_resource.extract_action == 'unzip'
+      zipfile cached_package_filename do
+        into new_resource.target_artifact
+        not_if { archive_exists }
+        unless platform?('windows')
+          user new_resource.owner
+          group new_resource.group
+          umask new_resource.umask if new_resource.umask # rubocop:disable Metrics/BlockNesting
+        end
+      end
+    elsif new_resource.extract_action.nil?
+      if platform?('windows')
+        powershell_script 'move_package' do
+          not_if { archive_exists }
+          code "copy \"#{cached_package_filename}\" \"#{new_resource.target_artifact}\""
+        end
+      else
+        bash 'move_package' do
+          not_if { archive_exists }
+          user new_resource.owner
+          group new_resource.group
+          umask new_resource.umask if new_resource.umask # rubocop:disable Metrics/BlockNesting
+          code "cp #{cached_package_filename} #{new_resource.target_artifact}"
+        end
+      end
+    else
+      raise "Unsupported extract_action #{new_resource.extract_action}"
+    end
+
+    if delete_cached_package
+      file cached_package_filename do
+        backup false
+        action :delete
+      end
+    end
+  end
+
+  last_version = nil
+
+  # TODO: linking should be configurable
+  unless platform?('windows')
+    last_version = ::File.exist?(current_directory) ? ::File.readlink(current_directory) : nil
+    link current_directory do
+      to new_resource.target_directory
+      owner new_resource.owner
+      group new_resource.group
+    end
+  end
+
+  existing_files = Dir[::File.join(new_resource.package_directory, "#{new_resource.name}-*")]
+                   .select { |file| ::File.directory?(file) }
+                   .select { |file| file != last_version }
+                   .select { |file| file != new_resource.target_directory }
+                   .sort { |file| -::File.ctime(file).to_i }
+
+  versions_to_keep = 4
+  files_to_delete = existing_files[versions_to_keep...existing_files.length]
+
+  files_to_delete.each do |filename|
+    directory filename do
+      action :delete
+      recursive true
+    end
+  end if files_to_delete
+end
 
 def base_directory
   p = prefix
